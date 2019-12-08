@@ -68,12 +68,6 @@ a directory named `basic` that is directly under the Web root.
 
 Set cookie validation key in `config/web.php` file to some random secret string:
 
-```php
-'request' => [
-    // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
-    'cookieValidationKey' => '<secret random string goes here>',
-],
-```
 
 You can then access the application through the following URL:
 
@@ -231,3 +225,6 @@ vendor/bin/codecept run functional,unit -- --coverage-html --coverage-xml
 ```
 
 You can see code coverage output under the `tests/_output` directory.
+=======
+# yii-home
+>>>>>>> 3654d768b31bebafa9de17eecee505976d7541e8

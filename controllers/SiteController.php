@@ -4,11 +4,13 @@ namespace app\controllers;
 
 use Yii;
 use yii\filters\AccessControl;
+use yii\httpclient\Client;
 use yii\web\Controller;
 use yii\web\Response;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\ContactForm;
+use Telegram\Bot\Api;
 
 class SiteController extends Controller
 {
@@ -52,6 +54,32 @@ class SiteController extends Controller
                 'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
             ],
         ];
+    }
+
+    public function actionTelegram()
+    {
+        $yandex_token = 'db768440-186b-4490-b54d-253adeff4286';
+        $client = new Client();
+        $request = $client->createRequest()
+            ->setMethod('get')
+            ->setUrl('https://api.weather.yandex.ru/v1/forecast?')
+            ->setHeaders(['X-Yandex-API-Key' => $yandex_token])
+            ->setData(['lat' => '52.7', 'lon' => '41.4', 'lang' => 'ru_RU', 'limit' => 1])
+            ->send();
+        $response = $request->data['fact'];
+        $temp = $response['temp'];
+        $feels_like = $response['feels_like'];
+        $message = 'Сейчас на улице ' . $temp . ' градусов.' . PHP_EOL .
+            'Ощущается как ' . $feels_like . ' .';
+
+
+        $telegram = new Api('684171945:AAHYpXchYNmqx0FT0lKMx0Q_1FWy1S6jXuE');
+        $telegram->sendMessage([
+            'chat_id' => '-271018918',
+            'text' => $message,
+            'parse_mode' => 'HTML',
+        ]);
+
     }
 
 

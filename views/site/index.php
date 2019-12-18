@@ -1,53 +1,64 @@
 <?php
 
-/* @var $this yii\web\View */
+use yii\widgets\ActiveForm;
+use yii\helpers\Html;
+use app\assets\AppAsset;
+
+AppAsset::register($this);
 
 $this->title = 'My Yii Application';
 ?>
-<div class="site-index">
+    <div class="site-index">
 
-    <div class="jumbotron">
-        <h1>Congratulations!</h1>
-
-        <p class="lead">You have successfully created your Yii-powered application.</p>
-
-        <p><a class="btn btn-lg btn-success" href="http://www.yiiframework.com">Get started with Yii</a></p>
-    </div>
-
-    <div class="body-content">
-
-        <div class="row">
-            <div class="col-lg-4">
-                <h2>Heading</h2>
-
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-default" href="http://www.yiiframework.com/doc/">Yii Documentation &raquo;</a></p>
-            </div>
-            <div class="col-lg-4">
-                <h2>Heading</h2>
-
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-default" href="http://www.yiiframework.com/forum/">Yii Forum &raquo;</a></p>
-            </div>
-            <div class="col-lg-4">
-                <h2>Heading</h2>
-
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-default" href="http://www.yiiframework.com/extensions/">Yii Extensions &raquo;</a></p>
-            </div>
+        <div class="jumbotron">
+            <?php $form = ActiveForm::begin([
+                    'action' => '/site/data',
+                //'id' => 'policy-form',
+                'fieldConfig' => [
+                    'template' => "{beginLabel}<span>{labelTitle}</span>{endLabel}\n{input}\n{hint}\n{error}\n",
+                ]
+            ]); ?>
+            <col-md-6>
+                <?= Html::textInput('city', '', ['class' => 'city', 'id' => 'city']); ?>
+            </col-md-6>
+            <?php ActiveForm::end(); ?>
         </div>
 
+        <div class="body-content">
+
+            <div class="row">
+            </div>
+
+        </div>
     </div>
-</div>
+<?php
+$js = <<<JS
+let datatoken = '3fdeada8b8129a920f359433176047d0905e3a0e';
+$("#city").suggestions({
+        token: datatoken,
+        type: "ADDRESS",
+        count: 5,
+        onSelect: function (suggestion) {
+            let city = suggestion.data.city;
+            $(this).val(city);
+            if (city != null) {
+    $.ajax({
+    type: 'POST',
+    url: '/site/data',
+    dataType: 'json',
+    data: {city : city},
+    success: function(res){
+        console.log(res);
+    },
+    error: function(xhr, status, error, res){
+        var err = eval("(" + JSON.parse(xhr.responseText) + ")");
+        console.log(value + ' ' + err.Message);
+    }
+    });
+    return false;
+    }
+        }
+    });
+JS;
+$this->registerJS($js, yii\web\View::POS_READY);
+

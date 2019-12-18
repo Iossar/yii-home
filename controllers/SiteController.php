@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\models\Profile;
 use Yii;
 use yii\filters\AccessControl;
 use yii\httpclient\Client;
@@ -40,6 +41,14 @@ class SiteController extends Controller
         ];
     }
 
+    public function beforeAction($action)
+    {
+        if ($action->id === 'data') {
+            $this->enableCsrfValidation = false;
+        }
+        return parent::beforeAction($action);
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -66,12 +75,18 @@ class SiteController extends Controller
             ->setHeaders(['X-Yandex-API-Key' => $yandex_token])
             ->setData(['lat' => '52.7', 'lon' => '41.4', 'lang' => 'ru_RU', 'limit' => 1])
             ->send();
-        $response = $request->data['fact'];
-        $temp = $response['temp'];
-        $feels_like = $response['feels_like'];
-        $message = 'Сейчас на улице ' . $temp . ' градусов.' . PHP_EOL .
-            'Ощущается как ' . $feels_like . ' .';
+        $response = $request->data;
+        $temp_now = $response['fact']['temp'];
+        $feels_like = $response['fact']['feels_like'];
+        $day_temp_min = $response['forecasts'][0]['parts']['day']['temp_min'];
+        $day_temp_max = $response['forecasts'][0]['parts']['day']['temp_max'];
+        $evening_temp_min = $response['forecasts'][0]['parts']['evening']['temp_min'];
+        $evening_temp_max = $response['forecasts'][0]['parts']['evening']['temp_max'];
 
+        $message = 'Сейчас на улице ' . $temp_now . '&#176;.' . PHP_EOL .
+            'Ощущается как ' . $feels_like . '&#176;.' . PHP_EOL .
+            'Днем температура ' . $day_temp_min . '-' . $day_temp_max . '&#176;.' . PHP_EOL .
+            'Вечером ' . $evening_temp_min . '-' . $evening_temp_max . '&#176;.';
 
         $telegram = new Api('684171945:AAHYpXchYNmqx0FT0lKMx0Q_1FWy1S6jXuE');
         $telegram->sendMessage([
@@ -80,6 +95,43 @@ class SiteController extends Controller
             'parse_mode' => 'HTML',
         ]);
 
+    }
+
+    public function actionData()
+    {
+        $this->enableCsrfValidation = false;
+        if (Yii::$app->request->isAjax) {
+            $post = Yii::$app->request->post();
+            $city = $post['city'];
+            $data_client = new Client();
+            $request = $data_client->createRequest()
+                ->setFormat(Client::FORMAT_JSON)
+                ->setMethod('post')
+                ->setUrl('https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address')
+                ->setHeaders(['Content-Type' => 'application/json', 'Accept' => 'application/json', 'Authorization' => 'Token 012184357e822066e736bd13933fc09629b66b16'])
+                ->setData(['query' => $city, 'count' => 1, 'bounds' => 'city'])
+                ->send();
+            $response = $request->data;
+            $geo_lat = $response["suggestions"][0]["data"]["geo_lat"];
+            $geo_lon = $response["suggestions"][0]["data"]["geo_lon"];
+            $weather = $this->getWeather($geo_lat, $geo_lon);
+            return json_encode($weather);
+        }
+    }
+
+    public function getWeather($geo_lat, $geo_lon)
+    {
+        $yandex_token = 'db768440-186b-4490-b54d-253adeff4286';
+        $client = new Client();
+        $request = $client->createRequest()
+            ->setMethod('get')
+            ->setUrl('https://api.weather.yandex.ru/v1/forecast?')
+            ->setHeaders(['X-Yandex-API-Key' => $yandex_token])
+            ->setData(['lat' => $geo_lat, 'lon' => $geo_lon, 'lang' => 'ru_RU', 'limit' => 1])
+            ->send();
+        $response = $request->data;
+        $temp_now = $response['fact']['temp'];
+        return $temp_now;
     }
 
 

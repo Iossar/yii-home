@@ -44,12 +44,19 @@ class HelloController extends Controller
             ->setHeaders(['X-Yandex-API-Key' => $yandex_token])
             ->setData(['lat' => '52.7', 'lon' => '41.4', 'lang' => 'ru_RU', 'limit' => 1])
             ->send();
-        $response = $request->data['fact'];
-        $temp = $response['temp'];
-        $feels_like = $response['feels_like'];
-        $message = 'Сейчас на улице ' . $temp . ' градусов.' . PHP_EOL .
-            'Ощущается как ' . $feels_like . ' .';
+        $response = $request->data;
+        $temp_now = $response['fact']['temp'];
+        $feels_like = $response['fact']['feels_like'];
+        $day_temp_min = $response['forecasts'][0]['parts']['day']['temp_min'];
+        $day_temp_max = $response['forecasts'][0]['parts']['day']['temp_max'];
+        $evening_temp_min = $response['forecasts'][0]['parts']['evening']['temp_min'];
+        $evening_temp_max = $response['forecasts'][0]['parts']['evening']['temp_max'];
 
+        $message = PHP_EOL . 'Сейчас на улице ' . $temp_now . '&#176;.' . PHP_EOL .
+            'Ощущается как ' . $feels_like . '&#176;.' . PHP_EOL .
+            'Днем температура ' . $day_temp_min . '-' . $day_temp_max . '&#176;.' . PHP_EOL .
+            'Вечером ' . $evening_temp_min . '-' . $evening_temp_max . '&#176;.'
+        ;
 
         $telegram = new Api('684171945:AAHYpXchYNmqx0FT0lKMx0Q_1FWy1S6jXuE');
         $telegram->sendMessage([

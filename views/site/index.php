@@ -18,9 +18,14 @@ $this->title = 'My Yii Application';
                     'template' => "{beginLabel}<span>{labelTitle}</span>{endLabel}\n{input}\n{hint}\n{error}\n",
                 ]
             ]); ?>
-            <col-md-6>
+            <col-md-4>
+                <span>Введите название города</span>
                 <?= Html::textInput('city', '', ['class' => 'city', 'id' => 'city']); ?>
-            </col-md-6>
+            </col-md-4>
+            <col-md-4>
+                <div style="display: none; margin-top: 20px" id="response">
+                </div>
+            </col-md-4>
             <?php ActiveForm::end(); ?>
         </div>
 
@@ -48,6 +53,8 @@ $("#city").suggestions({
     dataType: 'json',
     data: {city : city},
     success: function(res){
+        $('#response').css({'display' : 'block'});
+        $('#response').html('Температура в городе ' + city + ' ' + res + '	&#8451;');
         console.log(res);
     },
     error: function(xhr, status, error, res){

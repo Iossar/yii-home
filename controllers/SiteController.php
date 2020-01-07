@@ -12,6 +12,7 @@ use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\ContactForm;
 use Telegram\Bot\Api;
+use app\models\Time;
 
 class SiteController extends Controller
 {
@@ -46,6 +47,7 @@ class SiteController extends Controller
         if ($action->id === 'data') {
             $this->enableCsrfValidation = false;
         }
+        $this->enableCsrfValidation = false;
         return parent::beforeAction($action);
     }
 
@@ -64,7 +66,16 @@ class SiteController extends Controller
             ],
         ];
     }
+    public function actionChangeStatus()
+    {
+        if (Yii::$app->request->isAjax) {
+            $id = Yii::$app->request->post('id');
 
+            $time = Time::find()->where(['id' => $id])->one();
+            ($time->is_reserved == 0) ? $time->is_reserved = 1 : $time->is_reserved = 0;
+            $time->update();
+        }
+    }
     public function actionTelegram()
     {
         $yandex_token = 'db768440-186b-4490-b54d-253adeff4286';
@@ -158,7 +169,7 @@ class SiteController extends Controller
 
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            return $this->goBack();
+            return $this->redirect('../admin');
         }
 
         $model->password = '';

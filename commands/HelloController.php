@@ -11,6 +11,8 @@ use Telegram\Bot\Api;
 use yii\console\Controller;
 use yii\console\ExitCode;
 use yii\httpclient\Client;
+use app\models\Day;
+use app\models\Time;
 
 /**
  * This command echoes the first argument that you have entered.
@@ -65,5 +67,38 @@ class HelloController extends Controller
             'parse_mode' => 'HTML',
         ]);
 
+    }
+
+    public function actionFillDays()
+    {
+        $period = new \DatePeriod(
+            new \DateTime(date('Y-m-d', strtotime('today'))),
+            new \DateInterval('P1D'),
+            new \DateTime(date('Y-m-d', strtotime('today + 8 days'))));
+        foreach ($period as $value) {
+            $day = new Day;
+            $day->date = $value->format('Y-m-d');
+            $day->save();
+        }
+    }
+
+    public function actionFillTime()
+    {
+        $days = Day::find()->where(['>=', 'date', date('Y-m-d', strtotime('today'))])->all();
+        $hours = [
+            '12:00',
+            '13:00',
+            '14:00',
+            '15:00',
+            '16:00',
+        ];
+        foreach ($days as $day) {
+            foreach ($hours as $hour) {
+                $time = new Time;
+                $time->time = $hour;
+                $time->day_id = $day->id;
+                $time->save();
+            }
+        }
     }
 }

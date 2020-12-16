@@ -56,32 +56,6 @@ class SiteController extends Controller
         ];
     }
 
-    public function actionTelegram()
-    {
-        $yandex_token = 'db768440-186b-4490-b54d-253adeff4286';
-        $client = new Client();
-        $request = $client->createRequest()
-            ->setMethod('get')
-            ->setUrl('https://api.weather.yandex.ru/v1/forecast?')
-            ->setHeaders(['X-Yandex-API-Key' => $yandex_token])
-            ->setData(['lat' => '52.7', 'lon' => '41.4', 'lang' => 'ru_RU', 'limit' => 1])
-            ->send();
-        $response = $request->data['fact'];
-        $temp = $response['temp'];
-        $feels_like = $response['feels_like'];
-        $message = 'Сейчас на улице ' . $temp . ' градусов.' . PHP_EOL .
-            'Ощущается как ' . $feels_like . ' .';
-
-
-        $telegram = new Api('684171945:AAHYpXchYNmqx0FT0lKMx0Q_1FWy1S6jXuE');
-        $telegram->sendMessage([
-            'chat_id' => '-271018918',
-            'text' => $message,
-            'parse_mode' => 'HTML',
-        ]);
-
-    }
-
 
     /**
      * Displays homepage.
@@ -153,5 +127,31 @@ class SiteController extends Controller
     public function actionAbout()
     {
         return $this->render('about');
+    }
+    public function actionDump() {
+        return $this->renderPartial('dump');
+        $quotes_ru = Yii::$app->db->createCommand('SELECT * FROM quotes_ru')->queryAll();
+        $category_ru = Yii::$app->db->createCommand('SELECT id, title_ru FROM category')->queryAll();
+        $category_en = Yii::$app->db->createCommand('SELECT id, title_en FROM category')->queryAll();
+        $quotes_data = [];
+        foreach ($quotes_ru as $quote) {
+            $quotes_data[] = $quote;
+        }
+        $encoded = json_encode($quotes_data,JSON_UNESCAPED_UNICODE);
+        $filename = __DIR__ . '/../web/results.json';
+        $fp = fopen($filename, 'w');
+        fwrite($fp, $encoded);
+        header('X-Sendfile: ' . $filename);
+        //header("Content-Type: image/png");
+        //header("Content-Length: " . filesize($filename));
+        header("Content-Disposition: attachment; filename =" . 'json.json' . ";charset=UTF-8");
+        readfile($filename);
+
+        //fwrite($fp, $encoded);
+        //fclose($fp);
+    }
+
+    public function actionChat() {
+        return $this->render('chat');
     }
 }

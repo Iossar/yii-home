@@ -7,7 +7,13 @@
 
 namespace app\commands;
 
+use app\components\jobs\TableJob;
+use app\daemons\ChatServer;
+use app\daemons\EchoServer;
+use app\models\User;
+use consik\yii2websocket\WebSocketServer;
 use Telegram\Bot\Api;
+use Yii;
 use yii\console\Controller;
 use yii\console\ExitCode;
 use yii\httpclient\Client;
@@ -58,5 +64,25 @@ class HelloController extends Controller
             'parse_mode' => 'HTML',
         ]);
 
+    }
+
+    public function actionTest($name, $age, $gender)
+    {
+        $model = new User();
+        $model->name = $name;
+        $model->age = $age;
+        $model->gender = $gender;
+        Yii::$app->queue->delay(5)->push(new TableJob([
+            'model' => $model,
+        ]));
+    }
+
+    public function actionStartWs($port = null)
+    {
+        $server = new ChatServer();
+        if ($port) {
+            $server->port = $port;
+        }
+        $server->start();
     }
 }

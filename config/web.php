@@ -12,6 +12,11 @@ $config = [
         '@npm'   => '@vendor/npm-asset',
     ],
     'components' => [
+        'queue' => [
+            'class' => \yii\queue\redis\Queue::class,
+            'redis' => 'redis', // Компонент подключения к Redis или его конфиг
+            'channel' => 'queue', // Ключ канала очереди
+        ],
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => 'qVpG6lyiFdbBicnZzUpiHWpShfeSI4wu',

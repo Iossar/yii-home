@@ -11,7 +11,7 @@ nbproject
 flexglance.ru.error.log
 # windows thumbnail cache
 Thumbs.db
-
+composer.lock
 # composer vendor dir
 /vendor
 
